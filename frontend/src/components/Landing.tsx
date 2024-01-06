@@ -1,8 +1,9 @@
+import { Topbar } from "./Topbar";
 
 export const Landing = () => {
     return (
-        <div className="text-red-500 text-3xl">
-            Landing Page
+        <div className="bg-zinc-900 h-screen">
+            <Topbar />
         </div>
     )
 };
