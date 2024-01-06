@@ -1,41 +1,48 @@
-import { getAuth, sendSignInLinkToEmail } from "firebase/auth";
-import { useState } from "react";
+import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "firebase/auth";
+import { useEffect, useState } from "react";
+import { app } from "../utils/firebase";
 
-const actionCodeSettings = {
-    // URL you want to redirect back to. The domain (www.example.com) for this
-    // URL must be in the authorized domains list in the Firebase Console.
-    url: 'http://localhost:5173',
-    // This must be true.
-    handleCodeInApp: true,
-};
+
+const provider = new GoogleAuthProvider();
 
 export const Signin = () => {
 
-    const auth = getAuth();
+    const auth = getAuth(app);
     const [email, setEmail] = useState("");
 
+    // on SignIn
     async function onSignin() {
-        await sendSignInLinkToEmail(auth, email, actionCodeSettings)
-            .then(() => {
-                // The link was successfully sent. Inform the user.
-                // Save the email locally so you don't need to ask the user for it again
-                // if they open the link on the same device.
-                window.localStorage.setItem('emailForSignIn', email);
-                alert("sent email")
-                // ...
-            })
-            .catch((error) => {
-                alert("sent not email")
+        await signInWithPopup(auth, provider)
+            .then((result) => {
+                const credential = GoogleAuthProvider.credentialFromResult(result);
+                const token = credential.accessToken;
+                const user = result.user;
+
+            }).catch((error) => {
+                // Handle Errors here.
                 const errorCode = error.code;
                 const errorMessage = error.message;
+                // The email of the user's account used.
+                const email = error.customData.email;
+                // The AuthCredential type that was used.
+                const credential = GoogleAuthProvider.credentialFromError(error);
                 // ...
             });
     }
 
+    useEffect(() => {
+        onAuthStateChanged(auth, function (user) {
+            if(user) {
+                console.log('This is the user: ', user);
+            } else {
+                console.log("There is no logged in user");
+            }
+        });
+    }, [])
 
     return (
+
         <>
-            <input type="text" placeholder="email" onChange={(e) => setEmail(e.target.value)} />
             <button onClick={onSignin}>
                 SignUp
             </button>
